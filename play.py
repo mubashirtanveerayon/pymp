@@ -42,6 +42,7 @@ help_text = """1. use "dir" command followed by the audio directory to scan the 
 12. list audio tracks in a playlist by using "print" followed by the playlist name
 13. use "h" to get the help text
 14. use "get" followed by the audio name surrounded by double quotes you want to download
+15. use "remove" followed by the serial number of track in the queue to remove it from the queue/playlist
 """
 
 print(help_text)
@@ -72,7 +73,6 @@ def check_if_playing():
     
 
 while run:
-    #print(pos)
     if not playing and not paused:
         if loop :
             mixer.music.load(queue[0])
@@ -120,79 +120,87 @@ while run:
                 playlists = get_playlists(root_dir)
                 print("playlists:")
                 print(read_names(playlists))
-        
-        if root_dir:
+                text = ""
+      
 
-            if cmd[0] == "play" and cmd[1].isdigit():
-                if root_dir:
-                    audio_files = list_audio_files(root_dir)
-                    if mixer.music.get_busy():
-                        mixer.music.queue(audio_files[int(cmd[1])-1])
-                    else:
-                        mixer.music.load(audio_files[int(cmd[1])-1])
-                        thread = threading.Thread(target=check_if_playing)
-                        mixer.music.play()
-                        thread.start()
-                    queue.append(audio_files[int(cmd[1])-1])
-            elif cmd[0] == "save":
-                if len(queue) != 0:
-                    save_playlist(queue,root_dir,cmd[1])
-                    playlists = get_playlists(root_dir)
-            
-            elif cmd[0] == "select":
-                playlist = ""
-                if cmd[1].isdigit():
-                    playlist = playlists[int(cmd[1]) -1]
+
+        elif cmd[0] == "play" and cmd[1].isdigit():
+            if root_dir:
+                audio_files = list_audio_files(root_dir)
+                if mixer.music.get_busy():
+                    mixer.music.queue(audio_files[int(cmd[1])-1])
                 else:
-                    playlist_names = get_names(playlists)
-                    for i in range(len(playlist_names)):
-                        if cmd[1] == playlist_names[i]:
-                            playlist = playlists[i]
-                            break
-                
-                if playlist:
-                    queue.clear()
+                    mixer.music.load(audio_files[int(cmd[1])-1])
                     thread = threading.Thread(target=check_if_playing)
-                    audio_files = read_content(playlist)
-                    if mixer.music.get_busy():
-                        mixer.music.stop()
-                    mixer.music.load(audio_files[0])
-                    queue.append(audio_files[0])
-                    audio_files = audio_files[1:]
-                    for file in audio_files:
-                        mixer.music.queue(file)
-                        queue.append(file)
                     mixer.music.play()
                     thread.start()
+                queue.append(audio_files[int(cmd[1])-1])
+        elif cmd[0] == "save":
+            if len(queue) != 0:
+                save_playlist(queue,root_dir,cmd[1])
+                playlists = get_playlists(root_dir)
             
-            elif cmd[0] == "print":
+        elif cmd[0] == "select":
+            playlist = ""
+            if cmd[1].isdigit():
+                playlist = playlists[int(cmd[1]) -1]
+            else:
                 playlist_names = get_names(playlists)
-                playlist = ""
                 for i in range(len(playlist_names)):
                     if cmd[1] == playlist_names[i]:
                         playlist = playlists[i]
                         break
-                if playlist:
-                    print(read_names(read_content(playlist)))
-            
-            if cmd[0] == "get":
-                query = get_str_in_quotes(text)
-                if query:
-                    search = search_yt(query)
-                    download_audio(search,root_dir,query)
-                    print(read_names(list_audio_files(root_dir)))
+                
+            if playlist:
+                queue.clear()
+                thread = threading.Thread(target=check_if_playing)
+                audio_files = read_content(playlist)
+                if mixer.music.get_busy():
+                    mixer.music.stop()
+                mixer.music.load(audio_files[0])
+                queue.append(audio_files[0])
+                audio_files = audio_files[1:]
+                for file in audio_files:
+                    mixer.music.queue(file)
+                    queue.append(file)
+                mixer.music.play()
+                thread.start()
 
-        elif text == "refresh" :
-            for file in os.listdir(root_dir):
-                if file.endswith("m4a") and file not in converted_files:
-                    print(f"converting {file} to mp3 format")
-                    convert_audio( os.path.abspath(root_dir+os.sep+ file))
-                    print("conversion finished")
-                    converted_files.append(file)
-            print(read_names(list_audio_files(root_dir)))
-            playlists = get_playlists(root_dir)
-            print("playlists:")
-            print(read_names(playlists))
+        elif cmd[0] == "remove" and cmd[1].isdigit():
+            queue.remove(queue[int(cmd[1]) - 1])
+            print(read_names(queue))
+            
+            
+        elif cmd[0] == "print":
+            playlist_names = get_names(playlists)
+            playlist = ""
+            for i in range(len(playlist_names)):
+                if cmd[1] == playlist_names[i]:
+                    playlist = playlists[i]
+                    break
+            if playlist:
+                print(read_names(read_content(playlist)))
+            
+        elif cmd[0] == "get":
+            query = get_str_in_quotes(text)
+            if query:
+                search = search_yt(query)
+                download_audio(search,root_dir,query)
+                print(read_names(list_audio_files(root_dir)))
+
+    
+    elif text == "refresh" :
+        for file in os.listdir(root_dir):
+            if file.endswith("m4a") and file not in converted_files:
+                print(f"converting {file} to mp3 format")
+                convert_audio( os.path.abspath(root_dir+os.sep+ file))
+                print("conversion finished")
+                converted_files.append(file)
+        print(read_names(list_audio_files(root_dir)))
+        playlists = get_playlists(root_dir)
+        print("playlists:")
+        print(read_names(playlists))
+
 
     elif text == "s":
         mixer.music.stop()
@@ -211,15 +219,14 @@ while run:
         print(read_names(queue))
         print(f"loop: {loop}")
     
-    elif text == "h":
-        print(help_text)
+    
 
     elif text == "seek" and mixer.music.get_busy():
         new_pos = pos/1000.0 + 10
         mixer.music.play(start=new_pos)
-        
-        
-    
+
+    elif text == "h":
+        print(help_text)
     text = ""
 
 mixer.quit()

@@ -1,6 +1,6 @@
 import subprocess
 
-dependencies = ["pygame","ffmpeg-python","youtube-dl"]
+dependencies = ["pygame","ffmpeg-python","youtube-dl","pytube"]
 
 def install(package):
     try:
