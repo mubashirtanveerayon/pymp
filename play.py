@@ -168,6 +168,8 @@ while run:
 
         elif cmd[0] == "remove" and cmd[1].isdigit():
             queue.remove(queue[int(cmd[1]) - 1])
+            if len(queue) == 0:
+                loop = False
             print(read_names(queue))
             
             
