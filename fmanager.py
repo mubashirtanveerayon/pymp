@@ -6,6 +6,8 @@ nl = "\n" #new line
 playlist_extension = ".play"
 audio_file_extensions = ["mp3","wav"]
 
+def get_name(path):
+    return path.split(os.sep).pop().split(".")[0]
 
 def list_audio_files(folder)->list:
     dir = os.path.abspath(folder)
@@ -42,14 +44,14 @@ def get_playlists(folder)->list:
 def get_names(paths:list)->list:
     text = []
     for i in range(len(paths)):
-        name = paths[i].split(os.sep).pop().split(".")[0]
+        name = get_name(paths[i])
         text.append(name)
     return text
 
 def read_names(any_path_list:list)->str:
     text = ""
     for i in range(len(any_path_list)):
-        name = any_path_list[i].split(os.sep).pop().split(".")[0]
+        name = get_name(any_path_list[i])
         text += f"{i+1}.{name}{nl}"
     return (text.strip())
 
@@ -93,3 +95,4 @@ def get_str_in_quotes(s):
         return None
     
     return res[1]
+

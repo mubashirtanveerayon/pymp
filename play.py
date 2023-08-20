@@ -9,6 +9,8 @@ mixer.init()
 
 playlists = []
 
+current_track = ""
+
 pos = 0
 
 run = True
@@ -74,18 +76,45 @@ def check_if_playing():
 
 while run:
     if not playing and not paused:
-        if loop :
-            mixer.music.load(queue[0])
-            for track in queue[1:]:
-                mixer.music.queue(track)
-            thread = threading.Thread(target=check_if_playing)
-            mixer.music.play()
-            thread.start()
+        # if loop :
+        #     mixer.music.load(queue[0])
+        #     for track in queue[1:]:
+        #         mixer.music.queue(track)
+        #     thread = threading.Thread(target=check_if_playing)
+        #     mixer.music.play()
+        #     thread.start()
+        #     pos = 0
+
+        if len(queue) > 0:
+            if loop:
+                if not current_track in queue or current_track == queue[len(queue) - 1]:
+                    current_track = queue[0]
+                else:
+                    current_track = queue[queue.index(current_track)+1]
+            
+
+            elif current_track:
+                if not current_track in queue:
+                    current_track = queue[0]
+                elif current_track != queue[len(queue) - 1]:
+                    
+                    current_track = queue[queue.index(current_track)+1]
+                    
+                else:
+                     
+                    current_track = ""
+            
+            if current_track:
+                mixer.music.load(current_track)
+                mixer.music.play()
+                thread = threading.Thread(target=check_if_playing)
+                thread.start()
+            else:
+                print("queue ended")
+                queue.clear()
+
             pos = 0
-        elif len(queue) != 0:
-            print("queue ended")
-            queue.clear()
-            pos = 0
+
     if playing:
         set_pos()
 
@@ -114,27 +143,29 @@ while run:
                 root_dir = os.path.abspath(cmd[1])
                 for file in os.listdir(root_dir):
                     if file.endswith("m4a"):
-                        if file in get_names(list_audio_files(root_dir)):
+                        if file.split(".")[0] in get_names(list_audio_files(root_dir)):
                             converted_files.append(file)
                 print(read_names(list_audio_files(root_dir)))
                 playlists = get_playlists(root_dir)
                 print("playlists:")
                 print(read_names(playlists))
-                text = ""
-      
 
 
         elif cmd[0] == "play" and cmd[1].isdigit():
             if root_dir:
                 audio_files = list_audio_files(root_dir)
-                if mixer.music.get_busy():
-                    mixer.music.queue(audio_files[int(cmd[1])-1])
+                audio = audio_files[int(cmd[1])-1]
+                if playing:
+                    print(f"added {get_name(audio)} to queue")
                 else:
-                    mixer.music.load(audio_files[int(cmd[1])-1])
+                    current_track = audio
+                    mixer.music.load(audio)
                     thread = threading.Thread(target=check_if_playing)
                     mixer.music.play()
                     thread.start()
-                queue.append(audio_files[int(cmd[1])-1])
+                    pos = 0
+                    print(f"playing {get_name(audio)}")
+                queue.append(audio)
         elif cmd[0] == "save":
             if len(queue) != 0:
                 save_playlist(queue,root_dir,cmd[1])
@@ -154,22 +185,15 @@ while run:
             if playlist:
                 queue.clear()
                 thread = threading.Thread(target=check_if_playing)
-                audio_files = read_content(playlist)
-                if mixer.music.get_busy():
+                queue = read_content(playlist)
+                if playing:
                     mixer.music.stop()
-                mixer.music.load(audio_files[0])
-                queue.append(audio_files[0])
-                audio_files = audio_files[1:]
-                for file in audio_files:
-                    mixer.music.queue(file)
-                    queue.append(file)
+                mixer.music.load(queue[0])
                 mixer.music.play()
                 thread.start()
 
         elif cmd[0] == "remove" and cmd[1].isdigit():
             queue.remove(queue[int(cmd[1]) - 1])
-            if len(queue) == 0:
-                loop = False
             print(read_names(queue))
             
             
@@ -206,9 +230,9 @@ while run:
 
     elif text == "s":
         mixer.music.stop()
-        mixer.init()
         loop = False
         queue.clear()
+        current_track = ""
         pos = 0
     
     elif text == "print":
@@ -218,12 +242,57 @@ while run:
         loop = not loop
     
     elif text == "queue":
+        if current_track:
+            print(f"currently playing {get_name(current_track)}")
         print(read_names(queue))
         print(f"loop: {loop}")
     
+    elif text == "next" and len(queue)>0:
+        if playing:
+            mixer.music.stop()
+        if current_track in queue:
+            if current_track == queue[len(queue) - 1] :
+                if loop:
+                    current_track = queue[0]
+                else:
+                    current_track = ""
+            else:
+                current_track = queue[queue.index(current_track) + 1]
+        else:
+            current_track = queue[0]
+        if current_track:
+            #print(f"c |{current_track}|")
+            mixer.music.load(current_track)
+            mixer.music.play()
+            thread = threading.Thread(target=check_if_playing)
+            thread.start()
+        pos = 0
+        
+    elif text == "prev" and len(queue)>0:
+        if playing:
+            mixer.music.stop()
+        if current_track in queue:
+            if current_track == queue[0] :
+                if loop:
+                    current_track = queue[len(queue)-1]
+                else:
+                    current_track = ""
+            else:
+                current_track = queue[queue.index(current_track) - 1]
+        else:
+            current_track = queue[len(queue) - 1]
+
+        if current_track:
+            mixer.music.load(current_track)
+            mixer.music.play()
+            thread = threading.Thread(target=check_if_playing)
+            thread.start()
+        pos = 0
+
+    
     
 
-    elif text == "seek" and mixer.music.get_busy():
+    elif text == "seek" and playing:
         new_pos = pos/1000.0 + 10
         mixer.music.play(start=new_pos)
 
