@@ -45,6 +45,7 @@ help_text = """1. use "dir" command followed by the audio directory to scan the 
 13. use "h" to get the help text
 14. use "get" followed by the audio name surrounded by double quotes you want to download
 15. use "remove" followed by the serial number of track in the queue to remove it from the queue/playlist
+16. use "next", "prev" commands for playing the next and previous track repectively
 """
 
 print(help_text)
@@ -76,15 +77,6 @@ def check_if_playing():
 
 while run:
     if not playing and not paused:
-        # if loop :
-        #     mixer.music.load(queue[0])
-        #     for track in queue[1:]:
-        #         mixer.music.queue(track)
-        #     thread = threading.Thread(target=check_if_playing)
-        #     mixer.music.play()
-        #     thread.start()
-        #     pos = 0
-
         if len(queue) > 0:
             if loop:
                 if not current_track in queue or current_track == queue[len(queue) - 1]:
@@ -166,6 +158,7 @@ while run:
                     pos = 0
                     print(f"playing {get_name(audio)}")
                 queue.append(audio)
+                paused = False
         elif cmd[0] == "save":
             if len(queue) != 0:
                 save_playlist(queue,root_dir,cmd[1])
@@ -176,11 +169,11 @@ while run:
             if cmd[1].isdigit():
                 playlist = playlists[int(cmd[1]) -1]
             else:
-                playlist_names = get_names(playlists)
-                for i in range(len(playlist_names)):
-                    if cmd[1] == playlist_names[i]:
-                        playlist = playlists[i]
-                        break
+                
+                for path in playlists:
+                    if cmd[1] == get_name(path):
+                        playlist = path
+
                 
             if playlist:
                 queue.clear()
@@ -234,6 +227,7 @@ while run:
         queue.clear()
         current_track = ""
         pos = 0
+        paused = False
     
     elif text == "print":
         print(read_names(playlists))
@@ -261,7 +255,6 @@ while run:
         else:
             current_track = queue[0]
         if current_track:
-            #print(f"c |{current_track}|")
             mixer.music.load(current_track)
             mixer.music.play()
             thread = threading.Thread(target=check_if_playing)
