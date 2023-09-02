@@ -3,7 +3,7 @@ from pygame import mixer
 import threading
 from fmanager import *
 
-files = os.listdir("data")
+#files = os.listdir("data")
 
 mixer.init()
 
@@ -75,6 +75,18 @@ def check_if_playing():
     playing = False
     
 
+def set_root(root):
+    global root_dir,converted_files,playlists
+    root_dir = os.path.abspath(root)
+    for file in os.listdir(root_dir):
+        if file.endswith("m4a"):
+            if file.split(".")[0] in get_names(list_audio_files(root_dir)):
+                converted_files.append(file)
+    print(read_names(list_audio_files(root_dir)))
+    playlists = get_playlists(root_dir)
+    print("playlists:")
+    print(read_names(playlists))
+
 while run:
     if not playing and not paused:
         if len(queue) > 0:
@@ -132,15 +144,10 @@ while run:
     elif length > 1:
         if cmd[0] == "dir":
             if os.path.exists(os.path.abspath(cmd[1])):
-                root_dir = os.path.abspath(cmd[1])
-                for file in os.listdir(root_dir):
-                    if file.endswith("m4a"):
-                        if file.split(".")[0] in get_names(list_audio_files(root_dir)):
-                            converted_files.append(file)
-                print(read_names(list_audio_files(root_dir)))
-                playlists = get_playlists(root_dir)
-                print("playlists:")
-                print(read_names(playlists))
+                set_root(cmd[1])
+            else:
+                os.mkdir(os.path.abspath(cmd[1]))
+                set_root(cmd[1])
 
 
         elif cmd[0] == "play" and cmd[1].isdigit():
