@@ -46,6 +46,7 @@ help_text = """1. use "dir" command followed by the audio directory to scan the 
 14. use "get" followed by the audio name surrounded by double quotes you want to download
 15. use "remove" followed by the serial number of track in the queue to remove it from the queue/playlist
 16. use "next", "prev" commands for playing the next and previous track repectively
+17. use "v/" to increase and "v\\" to decrease the volume
 """
 
 print(help_text)
@@ -212,7 +213,16 @@ while run:
             if query:
                 search = search_yt(query)
                 download_audio(search,root_dir,query)
+                os.remove(root_dir+os.sep+query)
                 print(read_names(list_audio_files(root_dir)))
+
+    elif text == "v/":
+        mixer.music.set_volume(mixer.music.get_volume() + 0.1)
+        print(f"Volume set to {mixer.music.get_volume()}")
+
+    elif text == "v\\":
+        mixer.music.set_volume(mixer.music.get_volume() - 0.1)
+        print(f"Volume set to {mixer.music.get_volume()}")
 
     
     elif text == "refresh" :

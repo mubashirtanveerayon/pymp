@@ -75,7 +75,7 @@ def download_audio(yt,path,name):
     try:
         video = YouTube(yt.watch_url)
         audio_stream = video.streams.filter(only_audio=True).first()
-        print("dwonloading..")
+        print("downloading..")
         audio_stream.download(path,filename=name)
         convert_audio(f"{path}{os.sep}{name}")
     except Exception as e:
