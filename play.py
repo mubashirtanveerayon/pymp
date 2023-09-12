@@ -48,6 +48,7 @@ help_text = """1. use "dir" command followed by the audio directory to scan the 
 15. use "remove" followed by the serial number of track in the queue to remove it from the queue/playlist
 16. use "next", "prev" commands for playing the next and previous track repectively
 17. use "v/" to increase and "v\\" to decrease the volume
+18. use "shuffle" to shuffle the current queue
 """
 
 print(help_text)
