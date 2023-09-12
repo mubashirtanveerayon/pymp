@@ -2,6 +2,7 @@ import os
 from pygame import mixer
 import threading
 from fmanager import *
+import random
 
 #files = os.listdir("data")
 
@@ -299,7 +300,16 @@ while run:
             thread.start()
         pos = 0
 
-    
+    elif text == "shuffle":
+        if(len(queue)>1):
+            size = len(queue)
+            for i in range(size-1):
+                random_index = random.randint(0,size-1)
+                queue.append(queue.pop(random_index))
+            if current_track:
+                print(f"currently playing {get_name(current_track)}")
+            print(read_names(queue))
+
     
 
     elif text == "seek" and playing:
