@@ -21,7 +21,9 @@ def list_audio_files(folder)->list:
     return res
 
 def save_playlist(list_of_files,root_dir,name):
-    text = "\n".join(list_of_files)
+    text = ""
+    for file in list_of_files:
+        text+=(file.split(os.sep).pop())+"\n"
     with open(root_dir+os.sep+name+playlist_extension,"w") as list:
         list.write(text.strip())
 
@@ -96,3 +98,6 @@ def get_str_in_quotes(s):
     
     return res[1]
 
+
+def get_path(audio_file:str,root:str)->str:
+    return root+os.sep+audio_file
