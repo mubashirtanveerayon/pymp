@@ -136,6 +136,7 @@ while run:
 
     if text == "e":
         run = False
+        os._exit(0)
     elif text == "p" and mixer.music.get_busy():
         mixer.music.pause()
         paused = True
@@ -189,6 +190,14 @@ while run:
                 queue.clear()
                 thread = threading.Thread(target=check_if_playing)
                 queue = read_content(playlist)
+                for i in range(len(queue)):
+                    if(not os.path.exists(root_dir + os.sep + queue[i])):
+                        audio = queue[i].split(".")[0]
+                        search = search_yt(audio)
+                        download_audio(search,root_dir,audio)
+                        if(os.path.exists(root_dir+os.sep+audio)):
+                            os.remove(root_dir+os.sep+audio)
+                    queue[i] = root_dir + os.sep + queue[i]
                 if playing:
                     mixer.music.stop()
                 mixer.music.load(queue[0])
@@ -215,7 +224,8 @@ while run:
             if query:
                 search = search_yt(query)
                 download_audio(search,root_dir,query)
-                os.remove(root_dir+os.sep+query)
+                if(os.path.exists(root_dir+os.sep+query)):
+                    os.remove(root_dir+os.sep+query)
                 print(read_names(list_audio_files(root_dir)))
 
     elif text == "v/":
