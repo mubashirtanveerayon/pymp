@@ -1,4 +1,3 @@
 pygame
 ffmpeg-python
-youtube-dl
-pytube
+yt-dlp
