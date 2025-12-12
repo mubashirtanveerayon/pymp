@@ -1,3 +1,2 @@
+thefuzz
 pygame
-ffmpeg-python
-yt-dlp
